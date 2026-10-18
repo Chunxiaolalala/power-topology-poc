@@ -1,0 +1,213 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  color: #e5e7eb;
+  background: #0a0e1a;
+}
+
+/* 不支持 WebGPU 的降级提示（默认隐藏，由 JS 控制显示） */
+.fallback {
+  position: fixed;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #0a0e1a, #1a1f3a);
+  z-index: 9999;
+}
+.fallback.show { display: flex; }
+.fallback h1 { font-size: 24px; color: #ef4444; }
+.fallback a { color: #22d3ee; text-decoration: underline; }
+
+#app { position: relative; width: 100%; height: 100%; }
+
+#gpu-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, #1a1f3a 0%, #0a0e1a 100%);
+}
+
+/* ---------- 顶栏 ---------- */
+.topbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: rgba(10, 14, 26, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(120, 140, 180, 0.2);
+  z-index: 10;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand .logo { font-size: 22px; }
+.brand .title { font-size: 16px; font-weight: 600; color: #22d3ee; }
+.actions { display: flex; gap: 10px; }
+
+.btn {
+  padding: 6px 14px;
+  border: 1px solid rgba(120, 140, 180, 0.4);
+  background: rgba(30, 40, 70, 0.6);
+  color: #e5e7eb;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.btn:hover { background: rgba(34, 211, 238, 0.2); border-color: #22d3ee; }
+.btn.active { background: rgba(34, 211, 238, 0.3); border-color: #22d3ee; }
+
+/* ---------- 通用面板（磨砂玻璃） ---------- */
+.legend, .perf-panel, .detail-panel {
+  position: absolute;
+  background: rgba(15, 20, 35, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(120, 140, 180, 0.25);
+  border-radius: 8px;
+  padding: 12px 16px;
+  z-index: 10;
+}
+.panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #22d3ee;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(120, 140, 180, 0.2);
+}
+
+/* ---------- 左下角图例 ---------- */
+.legend { left: 16px; bottom: 40px; width: 140px; }
+.legend-title {
+  font-size: 13px; font-weight: 600; color: #22d3ee;
+  margin-bottom: 8px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 8px;
+  margin: 4px 0; font-size: 12px;
+}
+.dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  display: inline-block;
+}
+.dot.normal { background: #22d3ee; box-shadow: 0 0 6px #22d3ee; }
+.dot.warning { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+.dot.fault { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+.flow-arrow { color: #22d3ee; font-weight: bold; }
+
+/* ---------- 右上性能面板 ---------- */
+.perf-panel { right: 16px; top: 60px; width: 200px; }
+.perf-row {
+  display: flex; justify-content: space-between;
+  font-size: 12px; margin: 4px 0;
+}
+.perf-row span:first-child { color: #94a3b8; }
+.perf-row .adapter {
+  font-size: 11px; max-width: 120px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: right;
+}
+
+/* ---------- 右下详情面板 ---------- */
+.detail-panel {
+  right: 16px; bottom: 40px;
+  width: 340px; max-height: 60vh; overflow-y: auto;
+}
+.detail-info { font-size: 12px; line-height: 1.8; }
+.detail-info .intro { color: #cbd5e1; margin-bottom: 10px; }
+.detail-info .tech-list { padding-left: 18px; color: #94a3b8; }
+
+/* 节点信息表 */
+.node-info-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+.node-info-table td {
+  padding: 4px 6px; border-bottom: 1px solid rgba(120,140,180,0.1);
+}
+.node-info-table td:first-child { color: #94a3b8; width: 40%; }
+
+/* 实时指标卡 */
+.metric-cards {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  margin: 10px 0;
+}
+.metric-card {
+  background: rgba(30, 40, 70, 0.5);
+  border: 1px solid rgba(120,140,180,0.15);
+  border-radius: 4px; padding: 6px 8px;
+}
+.metric-card .label { font-size: 11px; color: #94a3b8; }
+.metric-card .value { font-size: 15px; font-weight: 600; color: #e5e7eb; }
+
+/* 状态徽章 */
+.status-badge {
+  display: inline-block; padding: 2px 10px;
+  border-radius: 10px; font-size: 11px; font-weight: 600;
+}
+.status-badge.normal { background: rgba(34,211,238,0.2); color: #22d3ee; }
+.status-badge.warning { background: rgba(245,158,11,0.2); color: #f59e0b; }
+.status-badge.fault { background: rgba(239,68,68,0.2); color: #ef4444; }
+
+/* 趋势图容器 */
+#chart-container {
+  width: 100%; height: 160px; margin-top: 10px;
+}
+
+/* AI 诊断按钮 + 结果 */
+.ai-btn {
+  width: 100%; margin-top: 10px; padding: 8px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border: none; border-radius: 4px; color: #fff;
+  cursor: pointer; font-size: 13px; font-weight: 600;
+}
+.ai-btn:hover { opacity: 0.9; }
+.ai-result {
+  margin-top: 10px; padding: 10px;
+  background: rgba(99, 102, 241, 0.1);
+  border-left: 3px solid #8b5cf6;
+  border-radius: 4px; font-size: 12px; line-height: 1.6;
+  color: #c7d2fe;
+}
+
+/* ---------- Tooltip ---------- */
+.tooltip {
+  position: absolute;
+  padding: 8px 12px;
+  background: rgba(15, 20, 35, 0.92);
+  border: 1px solid rgba(120,140,180,0.4);
+  border-radius: 6px;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 20;
+  transform: translate(-50%, -120%);
+  white-space: nowrap;
+}
+.tooltip .t-name { font-weight: 600; color: #22d3ee; margin-bottom: 2px; }
+.tooltip .t-row { color: #cbd5e1; }
+
+/* ---------- 底栏 ---------- */
+.bottombar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 14, 26, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(120, 140, 180, 0.2);
+  font-size: 12px; color: #94a3b8;
+  z-index: 10;
+}
